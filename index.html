@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Door Scene</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <button
@@ -24,6 +25,17 @@
     >
       Reset Camera
     </button>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Room Text Overlay -->
+    <div id="roomOverlay" class="overlay">
+      <div class="room-text"></div>
+    </div>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>

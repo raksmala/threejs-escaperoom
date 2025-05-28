@@ -8,6 +8,11 @@ let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let selectedDoor = null;
 
+// DOM elements
+const loadingOverlay = document.getElementById("loadingOverlay");
+const roomOverlay = document.getElementById("roomOverlay");
+const roomText = document.querySelector(".room-text");
+
 // Animation targets
 const doorAnimTargets = new WeakMap();
 const ANIMATION_SPEED = 0.1; // Adjust for faster/slower animation
@@ -17,6 +22,7 @@ const CAMERA_ANIMATION_SPEED = 0.08;
 let cameraTargetPosition = new THREE.Vector3(0, 2, 5);
 let cameraTargetLookAt = new THREE.Vector3(0, 1, 0);
 let cameraAnimating = false;
+let cameraAnimationCallback = null;
 
 init();
 animate();
@@ -107,8 +113,25 @@ function init() {
     resetBtn.addEventListener("click", () => {
       moveCameraTo(new THREE.Vector3(0, 2, 5), new THREE.Vector3(0, 1, 0));
       resetAllDoorsAnimTargets();
+      hideOverlays();
     });
   }
+}
+
+function showLoadingOverlay() {
+  loadingOverlay.style.display = "flex";
+  roomOverlay.style.display = "none";
+}
+
+function showRoomOverlay(text) {
+  loadingOverlay.style.display = "none";
+  roomText.textContent = text;
+  roomOverlay.style.display = "flex";
+}
+
+function hideOverlays() {
+  loadingOverlay.style.display = "none";
+  roomOverlay.style.display = "none";
 }
 
 function onMouseClick(event) {
@@ -125,36 +148,52 @@ function onMouseClick(event) {
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
     let doorRoot = null;
+    let roomName = "";
+
     // Find the root door object
     if (clickedObject.userData.isLeftDoor) {
       doorRoot = leftDoor;
+      roomName = "Room Left";
       console.log("Left door clicked!");
     } else if (clickedObject.userData.isRightDoor) {
       doorRoot = rightDoor;
+      roomName = "Room Right";
       console.log("Right door clicked!");
     }
+
     if (doorRoot) {
       selectedDoor = doorRoot;
       resetAllDoorsAnimTargets();
       setDoorChildrenAnimTarget(doorRoot);
+
       // Move camera to selected door
-      // We'll use the door's world position and look at its center
       const doorWorldPos = new THREE.Vector3();
       doorRoot.getWorldPosition(doorWorldPos);
-      // Offset the camera a bit back and up from the door
       const camPos = doorWorldPos.clone().add(new THREE.Vector3(0, 1, 3));
       moveCameraTo(
         camPos,
-        doorWorldPos.clone().add(new THREE.Vector3(0, 1, 0))
+        doorWorldPos.clone().add(new THREE.Vector3(0, 1, 0)),
+        () => {
+          // Show loading overlay after camera movement
+          showLoadingOverlay();
+          // Show room text after loading
+          setTimeout(() => {
+            showRoomOverlay(roomName);
+          }, 1000);
+        }
       );
     }
   }
 }
 
-function moveCameraTo(targetPos, targetLookAt) {
+function moveCameraTo(targetPos, targetLookAt, onComplete) {
   cameraTargetPosition.copy(targetPos);
   cameraTargetLookAt.copy(targetLookAt);
   cameraAnimating = true;
+  // Store the callback
+  if (onComplete) {
+    cameraAnimationCallback = onComplete;
+  }
 }
 
 function resetAllDoorsAnimTargets() {
@@ -236,6 +275,11 @@ function animateCamera() {
     camera.position.copy(cameraTargetPosition);
     controls.target.copy(cameraTargetLookAt);
     cameraAnimating = false;
+    // Execute callback if exists
+    if (cameraAnimationCallback) {
+      cameraAnimationCallback();
+      cameraAnimationCallback = null;
+    }
   }
 }
 
