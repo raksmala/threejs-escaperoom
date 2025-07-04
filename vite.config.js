@@ -16,4 +16,7 @@ export default defineConfig({
     // Enable CORS for development
     cors: true,
   },
+
+  // Ensure public assets are properly served
+  publicDir: "public",
 });
