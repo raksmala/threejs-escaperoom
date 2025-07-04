@@ -72,7 +72,7 @@ function init() {
   const loader = new GLTFLoader();
 
   // Load left door
-  loader.load("/door.glb", (gltf) => {
+  loader.load("./door.glb", (gltf) => {
     leftDoor = gltf.scene;
     leftDoor.traverse((child) => {
       if (child.isMesh) {
@@ -87,7 +87,7 @@ function init() {
   });
 
   // Load right door
-  loader.load("/door.glb", (gltf) => {
+  loader.load("./door.glb", (gltf) => {
     rightDoor = gltf.scene;
     rightDoor.traverse((child) => {
       if (child.isMesh) {
